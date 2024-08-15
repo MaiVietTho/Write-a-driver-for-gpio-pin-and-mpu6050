@@ -1,0 +1,42 @@
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <errno.h> // Include errno header
+
+// IOCTL definitions
+#define GPIO_MAGIC 'G'
+#define GPIO_SET_PIN _IOW(GPIO_MAGIC, 0, int)
+#define GPIO_GET_PIN _IOR(GPIO_MAGIC, 1, int)
+
+int main() {
+    int fd;
+    int gpio_pin = 17; // Example GPIO pin number
+    int value;
+
+    // Open the device file
+    fd = open("/dev/gpio_ctl", O_RDWR);
+    if (fd < 0) {
+        perror("Failed to open the device...");
+        return errno;
+    }
+
+    // Set the GPIO pin
+    if (ioctl(fd, GPIO_SET_PIN, &gpio_pin) < 0) {
+        perror("Failed to set GPIO pin...");
+        close(fd);
+        return errno;
+    }
+
+    // Get the GPIO pin value
+    if (ioctl(fd, GPIO_GET_PIN, &gpio_pin) < 0) {
+        perror("Failed to get GPIO pin value...");
+        close(fd);
+        return errno;
+    }
+    printf("GPIO %d value: %d\n", gpio_pin, value);
+
+    // Close the device file
+    close(fd);
+    return 0;
+}
